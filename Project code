@@ -1,0 +1,83 @@
+#include <iostream>
+#include <cstdlib>  // for rand() and srand()
+#include <ctime>    // for time()
+
+using namespace std;
+
+const int GRID_SIZE = 5;  // A smaller 5x5 grid
+const int CLEAN = 0;
+const int DIRTY = 1;
+const int OBSTACLE = 2;
+const int CHARGING_STATION = 3;
+
+class RobotVacuum {
+private:
+    int x, y;       // Robot's position
+    int battery;    // Battery level
+    int grid[GRID_SIZE][GRID_SIZE];  // 5x5 room grid
+
+public:
+    RobotVacuum() : x(0), y(0), battery(100) {
+        // Initialize random grid with dirty spots and obstacles
+        srand(time(0));
+        for (int i = 0; i < GRID_SIZE; ++i) {
+            for (int j = 0; j < GRID_SIZE; ++j) {
+                int randomValue = rand() % 3;  // Randomly place clean, dirty or obstacle cells
+                grid[i][j] = randomValue;
+            }
+        }
+        grid[0][0] = CHARGING_STATION;  // Start position is the charging station
+    }
+
+    void move() {
+        if (battery <= 0) {
+            cout << "Battery empty. Returning to charging station.\n";
+            returnToChargingStation();
+            return;
+        }
+
+        // Move robot randomly (left, right, up, down)
+        int direction = rand() % 4;
+        switch (direction) {
+            case 0: if (x > 0) x--; break;           // Move left
+            case 1: if (x < GRID_SIZE - 1) x++; break;  // Move right
+            case 2: if (y > 0) y--; break;           // Move up
+            case 3: if (y < GRID_SIZE - 1) y++; break;  // Move down
+        }
+        battery -= 10;  // Reduce battery
+        cout << "Moved to (" << x << ", " << y << "). Battery: " << battery << "%\n";
+    }
+
+    void clean() {
+        if (grid[x][y] == DIRTY) {
+            cout << "Cleaning at (" << x << ", " << y << ")\n";
+            grid[x][y] = CLEAN;
+            battery -= 5;
+        }
+    }
+
+    void returnToChargingStation() {
+        x = 0;
+        y = 0;
+        battery = 100;
+        cout << "Returned to charging station. Battery full at 100%\n";
+    }
+
+    void run() {
+        while (battery > 0) {
+            clean();
+            move();
+            if (battery <= 20) {
+                cout << "Battery low! Returning to charging station.\n";
+                returnToChargingStation();
+            }
+        }
+        cout << "All tasks completed.\n";
+    }
+};
+
+int main() {
+    RobotVacuum robot;
+    robot.run();
+    return 0;
+}
